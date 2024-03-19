@@ -3,7 +3,7 @@ import torchvision
 
 from torch import nn
 
-def create_mobilenetv2_model(num_classes:int=42, 
+def create_mobilenetv3_model(num_classes:int=42, 
                              seed:int=42):
     """Creates an MobileNetB2 feature extractor model and transforms.
 

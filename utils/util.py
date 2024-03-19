@@ -37,26 +37,9 @@ def convert_img_to_tensor(img):
     convert_img = convert_img.repeat(3, 1, 1)
     return convert_img
 
-def get_train_test_per_animal(animal: np.array,
-                              class_name_to_idx : List, 
-                              seed = 42,
-                              test_size = 0.2,
-                              train_data_point = 1200
-                             ):
-    all_data = np.load(f"data/{animal.lower()}.npy", allow_pickle = True)
-    rng = np.random.default_rng(seed=seed)
-    all_train,all_test = train_test_split(all_data, test_size = test_size)
-    return ([(convert_img_to_tensor(i),class_name_to_idx[animal]) for i in rng.choice(all_train,train_data_point)]),([(convert_img_to_tensor(i),class_name_to_idx[animal]) for i in rng.choice(all_test,int(train_data_point*0.2))])
 
-def get_train_test_data(class_names: List) -> [List,List]:
-    train_data, test_data = [],[]
-    for animal in class_names:
-        train_animal, test_animal = get_train_test_per_animal(animal)
-        train_data.extend(train_animal)
-        test_data.extend(test_animal)
-    return train_data, test_data
 
-def accuracy_tracking_per_batch(output: torch.Tensor, target: torch.Tensor, topk=(1,)) -> List[torch.FloatTensor]:
+def accuracy_tracking_per_batch(output: torch.Tensor, target: torch.Tensor, topk=(1,5)) -> List[torch.FloatTensor]:
     """
     Computes the accuracy over the k top predictions for the specified values of k
     In top-5 accuracy you give yourself credit for having the right answer

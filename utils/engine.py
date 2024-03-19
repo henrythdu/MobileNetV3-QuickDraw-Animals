@@ -68,7 +68,7 @@ def train_step(model: torch.nn.Module,
         train_batch_correct += batch_acc_info[0]
         train_batch_correct_top5 +=batch_acc_info[1]
         train_batch_length += batch_size
-
+    scheduler.step(train_loss)
     # Adjust metrics to get average loss and accuracy per batch 
     train_acc = train_batch_correct / train_batch_length
     train_acc_top5 = train_batch_correct_top5 / train_batch_length
@@ -180,7 +180,7 @@ def train(model: torch.nn.Module,
 
     # Loop through training and testing steps for a number of epochs
     for epoch in tqdm(range(epochs)):
-        train_loss, train_acc, test_acc_top5 = train_step(model=model,
+        train_loss, train_acc, train_acc_top5 = train_step(model=model,
                                           dataloader=train_dataloader,
                                           loss_fn=loss_fn,
                                           optimizer=optimizer,
@@ -195,7 +195,7 @@ def train(model: torch.nn.Module,
           f"Epoch: {epoch+1} | "
           f"train_loss: {train_loss:.4f} | "
           f"train_acc: {train_acc:.4f} | "
-          f"train_acc_top5: {test_acc_top5} |"
+          f"train_acc_top5: {train_acc_top5} |"
           f"test_loss: {test_loss:.4f} | "
           f"test_acc: {test_acc:.4f} | "
           f"test_acc_top5: {test_acc_top5}"
@@ -211,3 +211,17 @@ def train(model: torch.nn.Module,
 
     # Return the filled results at the end of the epochs
     return results
+
+class EarlyStopping:
+    def __init__(self, tolerance=5, min_delta=0):
+
+        self.tolerance = tolerance
+        self.min_delta = min_delta
+        self.counter = 0
+        self.early_stop = False
+
+    def __call__(self, train_loss, validation_loss):
+        if (validation_loss - train_loss) > self.min_delta:
+            self.counter +=1
+            if self.counter >= self.tolerance:  
+                self.early_stop = True
