@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 import numpy as np
 from sklearn.model_selection import train_test_split
 from typing import List
+from utils.util import convert_img_to_tensor
 import pandas as pd
 
 class CustomImageDataset(Dataset):

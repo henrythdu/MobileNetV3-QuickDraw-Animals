@@ -7,7 +7,6 @@ Crab
 Crocodile
 Dog
 Dolphin
-Donut
 Dragon
 Elephant
 Flamingo

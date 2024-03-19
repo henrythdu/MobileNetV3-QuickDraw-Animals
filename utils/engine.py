@@ -2,10 +2,10 @@
 Contains functions for training and testing a PyTorch model.
 """
 import torch
-from utils import accuracy_tracking_per_batch
+from utils.util import accuracy_tracking_per_batch
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
-
+import numpy
 
 def train_step(model: torch.nn.Module, 
                dataloader: torch.utils.data.DataLoader, 
@@ -44,7 +44,7 @@ def train_step(model: torch.nn.Module,
     # Loop through data loader data batches
     for batch, (X, y) in enumerate(dataloader):
         # Send data to target device
-        X, y = X.to(device), y.to(device)
+        X, y = X.to(device).float(), y.to(device)
 
         # 1. Forward pass
         y_pred = model(X)
@@ -109,7 +109,7 @@ def test_step(model: torch.nn.Module,
         # Loop through DataLoader batches
         for batch, (X, y) in enumerate(dataloader):
             # Send data to target device
-            X, y = X.to(device), y.to(device)
+            X, y = X.to(device).float(), y.to(device)
 
             # 1. Forward pass
             y_preds = model(X)
@@ -135,7 +135,7 @@ def train(model: torch.nn.Module,
           optimizer: torch.optim.Optimizer,
           loss_fn: torch.nn.Module,
           epochs: int,
-          scheduler: torch.optim.lr,
+          scheduler: torch.optim.lr_scheduler,
           device: torch.device) -> Dict[str, List]:
     """Trains and tests a PyTorch model.
 
@@ -185,6 +185,7 @@ def train(model: torch.nn.Module,
                                           dataloader=train_dataloader,
                                           loss_fn=loss_fn,
                                           optimizer=optimizer,
+                                          scheduler=scheduler,
                                           device=device)
         test_loss, test_acc, test_acc_top5 = test_step(model=model,
           dataloader=test_dataloader,
@@ -192,15 +193,15 @@ def train(model: torch.nn.Module,
           device=device)
 
         # Print out what's happening
-        print(
-          f"Epoch: {epoch+1} | "
-          f"train_loss: {train_loss:.4f} | "
-          f"train_acc: {train_acc:.4f} | "
-          f"train_acc_top5: {train_acc_top5} |"
-          f"test_loss: {test_loss:.4f} | "
-          f"test_acc: {test_acc:.4f} | "
-          f"test_acc_top5: {test_acc_top5}"
-        )
+        # print(
+        #   f"Epoch: {epoch+1} | "
+        #   f"train_loss: {train_loss:.4f} | "
+        #   f"train_acc: {train_acc.cpu().numpy():.4f} | "
+        #   f"train_acc_top5: {train_acc_top5.cpu().numpy()} |"
+        #   f"test_loss: {test_loss:.4f} | "
+        #   f"test_acc: {test_acc.cpu().numpy():.4f} | "
+        #   f"test_acc_top5: {test_acc_top5.cpu().numpy()}"
+        # )
 
         # Update results dictionary
         results["train_loss"].append(train_loss)
