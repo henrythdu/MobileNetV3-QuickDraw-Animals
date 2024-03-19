@@ -135,6 +135,7 @@ def train(model: torch.nn.Module,
           optimizer: torch.optim.Optimizer,
           loss_fn: torch.nn.Module,
           epochs: int,
+          scheduler: torch.optim.lr,
           device: torch.device) -> Dict[str, List]:
     """Trains and tests a PyTorch model.
 
