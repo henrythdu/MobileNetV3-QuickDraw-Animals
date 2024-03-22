@@ -1,5 +1,5 @@
 import requests
-from typing import List
+from typing import List, Dict
 import torch
 from torch import nn
 import torchvision
@@ -12,27 +12,56 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import shutil
 
-def download_data(animal):
+def download_data(animal: str):
+    """A function to download data from Quick Draw dataset
+
+    Args:
+        animal (str):name of the animal
+    """
     URL = f"https://storage.googleapis.com/quickdraw_dataset/full/numpy_bitmap/{animal.lower()}.npy"
-    FILE_TO_SAVE_AS = f"data/{animal.lower()}.npy" # the name you want to save file as
+    FILE_TO_SAVE_AS = f"data/{animal.lower()}.npy" # the name to save file as
 
     resp = requests.get(URL) # making requests to server
 
     with open(FILE_TO_SAVE_AS, "wb") as f: # opening a file handler to create new file 
         f.write(resp.content) # writing content to file
 
-def load_class_names(file_path: str):
+def load_class_names(file_path: str) -> List:
+    """Load class name into a variable
+
+    Args:
+        file_path (str): Path to class name text file
+
+    Returns:
+        List of all animal names
+    """
     with open(file_path, "r") as f:
         class_names_loaded = [animal.strip() for animal in  f.readlines()]
     return class_names_loaded
 
-def convert_class_names_to_idx(class_names: List):
+def convert_class_names_to_idx(class_names: List) -> Dict:
+    """Converting the class name of into idx. For example: ["Ant", "Bear"] -> {"Ant":0,"Bear":1}
+
+    Args:
+        class_names (List): List of all the class names
+
+    Returns:
+        Dict:a dictionary mapping animal name to id
+    """
     class_name_to_idx = {}
     for i,animal in enumerate(class_names):
         class_name_to_idx[animal] = i
     return class_name_to_idx
 
-def convert_img_to_tensor(img):
+def convert_img_to_tensor(img: np.array) -> torch.Tensor:
+    """Converting numpy image into torch tensor
+
+    Args:
+        img (np.array): numpy version of the dataset
+
+    Returns:
+        torch.Tensor: image in tensor format
+    """
     convert_img = torch.from_numpy(img.reshape(28,28))
     convert_img = convert_img.repeat(3, 1, 1)
     return convert_img

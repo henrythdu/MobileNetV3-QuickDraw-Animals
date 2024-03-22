@@ -2,10 +2,11 @@
 Contains functions for training and testing a PyTorch model.
 """
 import torch
-from utils.util import accuracy_tracking_per_batch
+from utils.util import accuracy_tracking_per_batch, save_model
 from tqdm.auto import tqdm
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Type
 import numpy
+
 
 def train_step(model: torch.nn.Module, 
                dataloader: torch.utils.data.DataLoader, 
@@ -129,6 +130,20 @@ def test_step(model: torch.nn.Module,
     test_acc_top5 = test_batch_correct_top5 / test_batch_length  
     return test_loss, test_acc, test_acc_top5
 
+class EarlyStopping:
+    def __init__(self, tolerance=5, min_delta=0):
+
+        self.tolerance = tolerance
+        self.min_delta = min_delta
+        self.counter = 0
+        self.early_stop = False
+
+    def __call__(self, train_loss, validation_loss):
+        if (validation_loss - train_loss) > self.min_delta:
+            self.counter +=1
+            if self.counter >= self.tolerance:  
+                self.early_stop = True
+
 def train(model: torch.nn.Module, 
           train_dataloader: torch.utils.data.DataLoader, 
           test_dataloader: torch.utils.data.DataLoader, 
@@ -136,6 +151,7 @@ def train(model: torch.nn.Module,
           loss_fn: torch.nn.Module,
           epochs: int,
           scheduler: torch.optim.lr_scheduler,
+          early_stopping: Type[EarlyStopping],
           device: torch.device) -> Dict[str, List]:
     """Trains and tests a PyTorch model.
 
@@ -193,37 +209,29 @@ def train(model: torch.nn.Module,
           device=device)
 
         # Print out what's happening
-        # print(
-        #   f"Epoch: {epoch+1} | "
-        #   f"train_loss: {train_loss:.4f} | "
-        #   f"train_acc: {train_acc.cpu().numpy():.4f} | "
-        #   f"train_acc_top5: {train_acc_top5.cpu().numpy()} |"
-        #   f"test_loss: {test_loss:.4f} | "
-        #   f"test_acc: {test_acc.cpu().numpy():.4f} | "
-        #   f"test_acc_top5: {test_acc_top5.cpu().numpy()}"
-        # )
+    print(
+      f"Epoch: {epoch+1} | "
+      f"train_loss: {train_loss:.4f} | "
+      f"train_acc: {train_acc.cpu().numpy()} | "
+      f"train_acc_top5: {train_acc_top5.cpu().numpy()} |"
+      f"test_loss: {test_loss:.4f} | "
+      f"test_acc: {test_acc.cpu().numpy()} | "
+      f"test_acc_top5: {test_acc_top5.cpu().numpy()}"
+    )
 
         # Update results dictionary
-        results["train_loss"].append(train_loss)
-        results["train_acc"].append(train_acc.cpu().numpy())
-        results["train_acc_top5"].append(train_acc_top5.cpu().numpy())
-        results["test_loss"].append(test_loss)
-        results["test_acc"].append(test_acc.cpu().numpy())
-        results["test_acc_top5"].append(test_acc_top5.cpu().numpy())
+    results["train_loss"].append(train_loss)
+    results["train_acc"].append(train_acc.cpu().numpy())
+    results["train_acc_top5"].append(train_acc_top5.cpu().numpy())
+    results["test_loss"].append(test_loss)
+    results["test_acc"].append(test_acc.cpu().numpy())
+    results["test_acc_top5"].append(test_acc_top5.cpu().numpy())
 
     # Return the filled results at the end of the epochs
+    if early_stopping.early_stop:
+        print("We are at epoch:", epoch)
+        save_model(model = model,
+                   target_dir = "models",
+                   model_name = f"model_epoch_{epoch + 1}_ES.pth")
     return results
 
-class EarlyStopping:
-    def __init__(self, tolerance=5, min_delta=0):
-
-        self.tolerance = tolerance
-        self.min_delta = min_delta
-        self.counter = 0
-        self.early_stop = False
-
-    def __call__(self, train_loss, validation_loss):
-        if (validation_loss - train_loss) > self.min_delta:
-            self.counter +=1
-            if self.counter >= self.tolerance:  
-                self.early_stop = True
