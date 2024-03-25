@@ -10,14 +10,14 @@ The QuickDraw dataset is a collection of 50 million drawings across 345 categori
 MobileNetV3 is a state-of-the-art lightweight deep neural network designed for mobile and edge devices. It's efficient and fast, making it ideal for real-time applications.
 
 ## Requirements
-torch==2.1.2
-torchvision==0.16.2
-tqdm==4.66.1
-matplotlib==3.7.5
-numpy==1.26.4
-pandas==2.2.0
-sklearn==1.2.2
-torchinfo==1.8.0
+- torch==2.1.2
+- torchvision==0.16.2
+- tqdm==4.66.1
+- matplotlib==3.7.5
+- numpy==1.26.4
+- pandas==2.2.0
+- sklearn==1.2.2
+- torchinfo==1.8.0
 
 ## Installation
 To set up the project environment, run the following commands:
